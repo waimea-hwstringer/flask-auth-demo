@@ -46,6 +46,10 @@
     </header>
 
 
+    {# Show flash messages from any previous events #}
+    {% include "components/messages.jinja" %}
+
+
     <main>
 
         {% block content %}
@@ -54,13 +58,9 @@
     </main>
 
 
-    {% include "components/messages.jinja" %}
-
-
     {# Show debug info. Comment this out if not needed #}
     {% include "components/debug.jinja" %}
 
 </body>
 
 </html>
-
