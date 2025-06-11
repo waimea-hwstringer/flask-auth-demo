@@ -77,7 +77,7 @@ def show_one_thing(id):
         sql = """
                 SELECT things.id   AS t_id,
                        things.name AS t_name,
-                       users.id    AS u_id
+                       users.id    AS u_id,
                        users.name  AS u_name
                        
                 FROM things 
@@ -107,16 +107,17 @@ def show_one_thing(id):
 def add_a_thing():
     # Get the data from the form
     name  = request.form.get("name")
-    
 
     # Sanitise the inputs
     name = html.escape(name)
     
+    # Get the user id from the session
+    user_id = session["user_id"]
 
     with connect_db() as client:
         # Add the thing to the DB
-        sql = "INSERT INTO things (name) VALUES (?)"
-        values = [name]
+        sql = "INSERT INTO things (name, user_id) VALUES (?, ?)"
+        values = [name, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
@@ -190,19 +191,32 @@ def login_user():
         return redirect("/login")
 
 #-----------------------------------------------------------
+# Route for logging out a user
+#-----------------------------------------------------------
+@app.get("/logout")
+def logout():
+    session.pop("user_id")
+    session.pop("user_name")
+    flash("You have been logged out","success")
+    return redirect("/")
+
+#-----------------------------------------------------------
 # Route for deleting a thing, Id given in the route
 #-----------------------------------------------------------
 @app.get("/delete/<int:id>")
  
 def delete_a_thing(id):
     with connect_db() as client:
-        # Delete the thing from the DB
-        sql = "DELETE FROM things WHERE id=?"
-        values = [id]
+        # Get our user id from the session
+        user_id = session["user_id"]
+
+        # Delete the thing from the DB checking that we are the owner
+        sql = "DELETE FROM things WHERE id=? AND user_id=?"
+        values = [id, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
-        flash("Thing deleted", "warning")
+        flash("Thing deleted", "success")
         return redirect("/things")
 
 
